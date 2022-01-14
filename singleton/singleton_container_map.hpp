@@ -37,7 +37,7 @@ namespace std {
         private:
         static unordered_map<string, T> ContainerMap;
         friend class pair<basic_string, T>;
-        bool exists(const string& key) { return (ContainerMap.find(key) != ContainerMap.end()); }
+        static bool exists(const string& key) { return (ContainerMap.find(key) != ContainerMap.end()); }
         virtual void Cleanup() = 0;
     };
 }

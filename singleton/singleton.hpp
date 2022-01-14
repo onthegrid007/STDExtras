@@ -11,7 +11,6 @@ namespace std {
         static T& GetInstance() { return Instance; }
 
         private:
-        T() = 0;
         static T Instance;
     };
 }
