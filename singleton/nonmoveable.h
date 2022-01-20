@@ -9,5 +9,5 @@ namespace std {
     protected:
     NonMovable() = default;
   };
-}
+};
 #endif

@@ -90,6 +90,6 @@ namespace std {
     time_point<ADVClockType> m_begin;
     static const ADVClock GLOBAL_CLOCK;
   };
-  const ADVClock ADVClock::GLOBAL_CLOCK;
+  inline const ADVClock ADVClock::GLOBAL_CLOCK;
 }
 #endif
