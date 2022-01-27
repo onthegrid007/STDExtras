@@ -1,23 +1,21 @@
 #ifndef THREADPOOL_H_
 #define THREADPOOL_H_
 
-//#include <mutex>
-//#include <thread>
-//#include <deque>
-//#include <vector>
-//#include <condition_variable>
-#include <iostream>
+#include <mutex>
+#include <thread>
+#include <deque>
+#include <vector>
+#include <condition_variable>
 
 #include "../singleton/singleton_container_map.hpp"
 
 namespace std {
 	class ThreadPool : public SingltonContainerMap<ThreadPool> {
 		public:
+		typedef function<void(void)> Task;
 		private:
+		_SCM_CHILD_DECLORATIONS(ThreadPool)
 		ThreadPool();
-		void Cleanup() override {
-			cout << "test" << endl;
-		}
 	};
 }
 

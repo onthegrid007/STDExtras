@@ -1,10 +1,6 @@
-w.i.p.
-
-
-
-
 #include "threadpool.h"
-std::unordered_map<std::string, T> std::ThreadPool::ContainerMap;
+_SCM_CHILD_DEFINITIONS(std::ThreadPool)
+
 std::ThreadPool::ThreadPool() {}
 
 /*

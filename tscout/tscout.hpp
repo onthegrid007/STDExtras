@@ -1,12 +1,12 @@
 #ifndef TSCOUT_HPP_
 #define TSCOUT_HPP_
 
-#include "../singleton/singleton.hpp"
+#include "vendor/singleton/singleton.hpp"
 #include <iostream>
 
 namsepace std {
 	class TSCout: public Singleton<TSCout> {
-	public:
+		public:
 		template<typename T>
 		ostream& operator<<(T& op) {
 			lock_guard<mutex>(*m_mutex);
@@ -16,20 +16,16 @@ namsepace std {
 
 		template<typename T>
 		ostream& operator<<(T&& op) {
-			lock_guard<mutex>(*m_mutex);
-			cout << op;
-			cout.flush();
+			return (*this) << op;
 		}
-	private:
+		private:
 		TSCout() {}
 		mutex m_mutex;
 		~TSCout() {}
 	};
 
-	inline TSCout TSCout::Instance;
-
-	#define tscout TSCout:GetInstance();
+	#define tscout TSCout::GetInstance()
 	#define tsendl "\n"
+	_SINGLETON_CHILD_DEFINITIONS(TSCout)
 }
-
 #endif

@@ -27,5 +27,4 @@ namespace std {
         void Shutdown();
         void ShutdownErrorHandle();
     };
-}
 #endif
