@@ -23,7 +23,6 @@ namespace std {
 	#define BIT_FLIP(a,b) ((a) ^= (1ULL<<(b)))
 	#define BIT_CHECK(a,b) (!!((a) & (1ULL<<(b))))
 	#define BYTE 8
-	#define coutBits(a) { for(int i = (sizeof(a) * BYTE) - 1; i >= 0; i--) { mpcout << BIT_CHECK(a, i); } cout << endl; }
 	#define ARRAY_LENGTH(array) (sizeof((array))/sizeof((array)[0]))
 	inline const static double PI = 3.141592653589793;
 	inline double rad2deg(double d) { return d * (PI / (double)180.0); }
