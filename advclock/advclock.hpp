@@ -1,130 +1,135 @@
 #ifndef ADVCLOCK_HPP_
 #define ADVCLOCK_HPP_
 
+#define _GLIBCXX_USE_C99_STDINT_TR1
 #include <chrono>
 
 namespace std {
-  using namespace chrono;
-  class ADVClock {
-    public:
-    #ifdef ADVCLOCKTYPE_OVERRIDE
-      typedef ADVCLOCKTYPE_OVERRIDE ADVClockType;
+  namespace chrono {
+    #ifdef ADVCLOCK_STATIC_INSTANCE_TYPE_OVERRIDE
+      typedef ADVCLOCK_STATIC_INSTANCE_TYPE_OVERRIDE GlobalClockType;
     #else
-      typedef high_resolution_clock ADVClockType;
+      typedef steady_clock GlobalClockType;
     #endif
-  
-    enum Precision : char {
-      Nanoseconds = 0,
-      Microseconds = 1,
-      Milliseconds = 2,
-      Seconds = 3,
-      Minutes = 4,
-      Hours = 5,
-      Days = 6,
-      Weeks = 7,
-      Months = 8,
-      Years = 9
-    };
+    template<typename T = GlobalClockType>
+    class ADVClock {
+      public:
+      typedef T ClockType;
 
-    #define SecsInMin 60
-    #define MinsInHour 60
-    #define HoursInDay 24
-    #define DaysInWeek 7
-    #define DaysInYear 365.24
-    #define MonthsInYear 12
-
-    ADVClock() :
-      m_begin(ADVClockType::now()) { }
-      
-    template<typename rtnType = double, typename castType>
-    static rtnType RuntimeCast(castType cast, Precision precision = Precision::Nanoseconds) {
-        return RuntimeCastFromNano(duration_cast<nanoseconds>(cast), precision);
-    }
-
-    template<typename rtnType = double>
-    static rtnType RuntimeCastFromNano(nanoseconds fromNanos, Precision precision = Precision::Nanoseconds) {
-      #define divb1k(x) (x / rtnType(1000.0))
-      #define nanos int64_t(fromNanos.count())
-      #define micros divb1k(nanos)
-      #define millis divb1k(micros)
-      #define secs divb1k(millis)
-      #define mins (secs / SecsInMin)
-      #define hours (mins / MinsInHour)
-      #define days (hours / HoursInDay)
-      #define weeks (days / DaysInWeek)
-      #define years (days / DaysInYear)
-      #define months (years / MonthsInYear)
-
-      switch((int)precision) {
-        case Precision::Nanoseconds:
-        return nanos;
-        case Precision::Microseconds:
-        return micros;
-        case Precision::Milliseconds:
-        return millis;
-        case Precision::Seconds:
-        return secs;
-        case Precision::Minutes:
-        return mins;
-        case Precision::Hours:
-        return hours;
-        case Precision::Days:
-        return days;
-        case Precision::Weeks:
-        return weeks;
-        case Precision::Months:
-        return months;
-        case Precision::Years:
-        return years;
-        default:
-        return nanos;
+      enum Precision : char {
+        Nanoseconds = 0,
+        Microseconds = 1,
+        Milliseconds = 2,
+        Seconds = 3,
+        Minutes = 4,
+        Hours = 5,
+        Days = 6,
+        Weeks = 7,
+        Months = 8,
+        Years = 9
       };
-    }
 
-    nanoseconds beginDur() {
-        return m_begin - GLOBAL_CLOCK.m_begin; 
-    }
-    
-    template<typename rtnType>
-    rtnType begin(Precision precision = Precision::Nanoseconds) {
-        return RuntimeCast<rtnType>(beginDur(), Precision::Nanoseconds);
-    }
-    
-    nanoseconds nowDur() {
-        return ADVClockType::now() - GLOBAL_CLOCK.m_begin; 
-    }
-    
-    template<typename rtnType>
-    rtnType now(Precision precision = Precision::Nanoseconds) {
-        return RuntimeCast<rtnType>(nowDur(), Precision::Nanoseconds);
-    }
+      #define SecsInMin 60
+      #define MinsInHour 60
+      #define HoursInDay 24
+      #define DaysInWeek 7
+      #define DaysInYear 365.24
+      #define MonthsInYear 12
 
-    nanoseconds elapsedRawNanoDur(bool tareClock = false) {
-      auto rtn = nowDur() - beginDur();
-      tareClock ? tare() : void(0);
-      return rtn;
-    }
-    
-    int64_t elapsedRawNano(bool tareClock = false) {
-      int64_t rtn = elapsedRawNanoDur().count();
-      tareClock ? tare() : void(0);
-      return rtn;
-    }
+      ADVClock() :
+        m_begin(ClockType::now()) { }
+        
+      template<typename rtnType = double, typename castType>
+      static rtnType RuntimeCast(castType cast, Precision precision = Precision::Nanoseconds) {
+          return RuntimeCastFromNano(duration_cast<nanoseconds>(cast), precision);
+      }
 
-    template<typename rtnType>
-    rtnType elapsed(Precision precision = Precision::Nanoseconds, bool tareClock = false) {
-        return RuntimeCast<rtnType>(elapsedRawNanoDur(tareClock), precision);
-    }
+      template<typename rtnType = double>
+      static rtnType RuntimeCastFromNano(nanoseconds fromNanos, Precision precision = Precision::Nanoseconds) {
+        #define divb1k(x) (x / rtnType(1000.0))
+        #define nanos int64_t(fromNanos.count())
+        #define micros divb1k(nanos)
+        #define millis divb1k(micros)
+        #define secs divb1k(millis)
+        #define mins (secs / SecsInMin)
+        #define hours (mins / MinsInHour)
+        #define days (hours / HoursInDay)
+        #define weeks (days / DaysInWeek)
+        #define years (days / DaysInYear)
+        #define months (years / MonthsInYear)
 
-    void tare() { m_begin = ADVClockType::now(); }
+        switch((int)precision) {
+          case Precision::Nanoseconds:
+          return nanos;
+          case Precision::Microseconds:
+          return micros;
+          case Precision::Milliseconds:
+          return millis;
+          case Precision::Seconds:
+          return secs;
+          case Precision::Minutes:
+          return mins;
+          case Precision::Hours:
+          return hours;
+          case Precision::Days:
+          return days;
+          case Precision::Weeks:
+          return weeks;
+          case Precision::Months:
+          return months;
+          case Precision::Years:
+          return years;
+          default:
+          return nanos;
+        };
+      }
 
-    ~ADVClock() {}
+      nanoseconds beginDur() {
+          return m_begin - GLOBAL_CLOCK.m_begin; 
+      }
+      
+      template<typename rtnType = int64_t>
+      rtnType begin(Precision precision = Precision::Nanoseconds) {
+          return RuntimeCast<rtnType>(beginDur(), Precision::Nanoseconds);
+      }
+      
+      nanoseconds nowDur() {
+          return ClockType::now() - GLOBAL_CLOCK.m_begin; 
+      }
+      
+      template<typename rtnType = int64_t>
+      rtnType now(Precision precision = Precision::Nanoseconds) {
+          return RuntimeCast<rtnType>(nowDur(), Precision::Nanoseconds);
+      }
 
-    private:
-    time_point<ADVClockType> m_begin;
-    static const ADVClock GLOBAL_CLOCK;
-  };
-  inline const ADVClock ADVClock::GLOBAL_CLOCK;
+      nanoseconds elapsedRawNanoDur(bool tareClock = false) {
+        auto rtn = nowDur() - beginDur();
+        tareClock ? tare() : void(0);
+        return rtn;
+      }
+      
+      int64_t elapsedRawNano(bool tareClock = false) {
+        int64_t rtn = elapsedRawNanoDur().count();
+        tareClock ? tare() : void(0);
+        return rtn;
+      }
+
+      template<typename rtnType>
+      rtnType elapsed(Precision precision = Precision::Nanoseconds, bool tareClock = false) {
+          return RuntimeCast<rtnType>(elapsedRawNanoDur(tareClock), precision);
+      }
+
+      void tare() { m_begin = ClockType::now(); }
+
+      ~ADVClock() {}
+
+      private:
+      time_point<ClockType> m_begin;
+      static const ADVClock<GlobalClockType> GLOBAL_CLOCK;
+    };
+    typedef ADVClock<GlobalClockType> GCTypename;
+    template inline const GCTypename GCTypename::GLOBAL_CLOCK;
+  }
 }
 #endif
 

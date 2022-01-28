@@ -7,7 +7,7 @@
 #include <vector>
 #include <condition_variable>
 
-#include "../singleton/singleton_container_map.hpp"
+#include "vendor/singleton/singleton_container_map.hpp"
 
 namespace std {
 	class ThreadPool : public SingltonContainerMap<ThreadPool> {
