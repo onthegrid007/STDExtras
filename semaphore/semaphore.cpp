@@ -1,3 +1,10 @@
+/*
+*   BSD 3-Clause License, see file labled 'LICENSE' for the full License.
+*   Copyright (c) 2022, Peter Ferranti
+*   All rights reserved.
+*   Other Contributers:
+*/
+
 #include "semaphore.h"
 
 Semaphore::Semaphore(int64_t i) :

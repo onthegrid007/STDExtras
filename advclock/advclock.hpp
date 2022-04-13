@@ -1,3 +1,10 @@
+/*
+*   BSD 3-Clause License, see file labled 'LICENSE' for the full License.
+*   Copyright (c) 2022, Peter Ferranti
+*   All rights reserved.
+*   Other Contributers:
+*/
+
 #ifndef ADVCLOCK_HPP_
 #define ADVCLOCK_HPP_
 
