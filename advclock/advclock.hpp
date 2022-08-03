@@ -2,24 +2,23 @@
 *   BSD 3-Clause License, see file labled 'LICENSE' for the full License.
 *   Copyright (c) 2022, Peter Ferranti
 *   All rights reserved.
-*   Other Contributers:
 */
 
-#ifndef ADVCLOCK_HPP_
-#define ADVCLOCK_HPP_
+#ifndef ADVClock_HPP_
+#define ADVClock_HPP_
 
-#define _GLIBCXX_USE_C99_STDINT_TR1
+// #define _GLIBCXX_USE_C99_STDINT_TR1
 #include <chrono>
 
 namespace std {
   namespace chrono {
-    #ifdef ADVCLOCK_STATIC_INSTANCE_TYPE_OVERRIDE
-      typedef ADVCLOCK_STATIC_INSTANCE_TYPE_OVERRIDE GlobalClockType;
+    #ifdef _ADVClock_STATIC_INSTANCE_TYPE_OVERRIDE
+      typedef _ADVClock_STATIC_INSTANCE_TYPE_OVERRIDE GlobalClockType;
     #else
       typedef steady_clock GlobalClockType;
     #endif
     template<typename T = GlobalClockType>
-    class ADVClock {
+    class _ADVClock {
       public:
       typedef T ClockType;
 
@@ -43,12 +42,12 @@ namespace std {
       #define DaysInYear 365.24
       #define MonthsInYear 12
 
-      ADVClock() :
+      _ADVClock() :
         m_begin(ClockType::now()) { }
         
       template<typename rtnType = double, typename castType>
       static rtnType RuntimeCast(castType cast, Precision precision = Precision::Nanoseconds) {
-          return RuntimeCastFromNano(duration_cast<nanoseconds>(cast), precision);
+          return RuntimeCastFromNano<rtnType>(duration_cast<nanoseconds>(cast), precision);
       }
 
       template<typename rtnType = double>
@@ -128,16 +127,21 @@ namespace std {
 
       void tare() { m_begin = ClockType::now(); }
 
-      ~ADVClock() {}
+      ~_ADVClock() {}
 
       private:
       time_point<ClockType> m_begin;
-      static const ADVClock<GlobalClockType> GLOBAL_CLOCK;
+      inline static const _ADVClock<ClockType> GLOBAL_CLOCK = _ADVClock<ClockType>();
     };
-    typedef ADVClock<GlobalClockType> GCTypename;
-    template inline const GCTypename GCTypename::GLOBAL_CLOCK;
+    typedef _ADVClock<GlobalClockType> ADVClock;
+    // typedef _ADVClock::_ADVClock<_ADVClock::ClockType> GCTypename;
+    // template<> inline const GCTypename GCTypename::GLOBAL_CLOCK;
   }
 }
+
+
+// template<> inline const std::chrono::_ADVClock<std::chrono::_ADVClock::ClockType> std::chrono::_ADVClock::GLOBAL_CLOCK;
+
 #endif
 
 // Example Usage
@@ -159,20 +163,20 @@ int main() {
     using namespace chrono;
     nanoseconds nanosecs;
 {
-    ADVClock c;
+    _ADVClock c;
     doStuff();
     nanosecs = c.elapsedRawNanoDur();
 }
     std::cout << "Clock took:\n" <<
         nanosecs.count() << " nanos\n" <<
-        ADVClock::RuntimeCast<double>(nanosecs, ADVClock::Precision::Microseconds) << " micros\n" <<
-        ADVClock::RuntimeCast<double>(nanosecs, ADVClock::Precision::Milliseconds) << " millis\n" <<
-        ADVClock::RuntimeCast<double>(nanosecs, ADVClock::Precision::Seconds) << " secs\n" <<
-        ADVClock::RuntimeCast<double>(nanosecs, ADVClock::Precision::Minutes) << " mins\n" <<
-        ADVClock::RuntimeCast<double>(nanosecs, ADVClock::Precision::Hours) << " hours\n" <<
-        ADVClock::RuntimeCast<double>(nanosecs, ADVClock::Precision::Days) << " days\n" <<
-        ADVClock::RuntimeCast<double>(nanosecs, ADVClock::Precision::Weeks) << " weeks\n" <<
-        ADVClock::RuntimeCast<double>(nanosecs, ADVClock::Precision::Years) << " years\n";
+        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Microseconds) << " micros\n" <<
+        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Milliseconds) << " millis\n" <<
+        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Seconds) << " secs\n" <<
+        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Minutes) << " mins\n" <<
+        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Hours) << " hours\n" <<
+        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Days) << " days\n" <<
+        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Weeks) << " weeks\n" <<
+        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Years) << " years\n";
     return 0;
 }
 */
