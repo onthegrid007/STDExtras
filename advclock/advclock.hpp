@@ -4,11 +4,12 @@
 *   All rights reserved.
 */
 
-#ifndef ADVClock_HPP_
-#define ADVClock_HPP_
+#ifndef ADVCLOCK_HPP_
+#define ADVCLOCK_HPP_
 
 // #define _GLIBCXX_USE_C99_STDINT_TR1
 #include <chrono>
+#include "../vendor/Timestamp/timestamp.h"
 
 namespace std {
   namespace chrono {
@@ -130,7 +131,7 @@ namespace std {
       ~_ADVClock() {}
 
       private:
-      time_point<ClockType> m_begin;
+      _Timestamp<ClockType> m_begin;
       inline static const _ADVClock<ClockType> GLOBAL_CLOCK = _ADVClock<ClockType>();
     };
     typedef _ADVClock<GlobalClockType> ADVClock;
@@ -145,7 +146,6 @@ namespace std {
 #endif
 
 // Example Usage
-
 /*
 void doStuff() {
     double sum = 0;
@@ -161,22 +161,22 @@ void doStuff() {
 int main() {
     using namespace std;
     using namespace chrono;
-    nanoseconds nanosecs;
+    nanoseconds ns;
 {
-    _ADVClock c;
+    ADVClock c;
     doStuff();
-    nanosecs = c.elapsedRawNanoDur();
+    ns = c.elapsedRawNanoDur();
 }
     std::cout << "Clock took:\n" <<
-        nanosecs.count() << " nanos\n" <<
-        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Microseconds) << " micros\n" <<
-        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Milliseconds) << " millis\n" <<
-        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Seconds) << " secs\n" <<
-        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Minutes) << " mins\n" <<
-        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Hours) << " hours\n" <<
-        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Days) << " days\n" <<
-        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Weeks) << " weeks\n" <<
-        _ADVClock::RuntimeCast<double>(nanosecs, _ADVClock::Precision::Years) << " years\n";
+        ns.count() << " nanos\n" <<
+        ADVClock::RuntimeCast(nanosecs, ADVClock::Precision::Microseconds) << " micros\n" <<
+        ADVClock::RuntimeCast(nanosecs, ADVClock::Precision::Milliseconds) << " millis\n" <<
+        ADVClock::RuntimeCast(nanosecs, ADVClock::Precision::Seconds) << " secs\n" <<
+        ADVClock::RuntimeCast(nanosecs, ADVClock::Precision::Minutes) << " mins\n" <<
+        ADVClock::RuntimeCast(nanosecs, ADVClock::Precision::Hours) << " hours\n" <<
+        ADVClock::RuntimeCast(nanosecs, ADVClock::Precision::Days) << " days\n" <<
+        ADVClock::RuntimeCast(nanosecs, ADVClock::Precision::Weeks) << " weeks\n" <<
+        ADVClock::RuntimeCast(nanosecs, ADVClock::Precision::Years) << " years\n";
     return 0;
 }
 */

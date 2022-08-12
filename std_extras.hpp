@@ -1,7 +1,4 @@
 #pragma once
-#ifdef _GLIBCXX_USE_NANOSLEEP
-#undef _GLIBCXX_USE_NANOSLEEP
-#endif
 #include <iostream>
 #include <fstream>
 #include <vector>
