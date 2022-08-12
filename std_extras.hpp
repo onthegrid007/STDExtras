@@ -1,5 +1,4 @@
 #pragma once
-#pragma GCC system_header
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -17,6 +16,7 @@ namespace std {
 	typedef unsigned long int ULI;
 	typedef unsigned long long int ULLI;
 	typedef signed long long int SLLI;
+	typedef long double LD;
 	/* a=target variable, b=bit number to act upon 0..n */
 	#define BIT_SET(a,b) ((a) |= (1ULL<<(b)))
 	#define BIT_CLEAR(a,b) ((a) &= ~(1ULL<<(b)))
@@ -24,12 +24,15 @@ namespace std {
 	#define BIT_CHECK(a,b) (!!((a) & (1ULL<<(b))))
 	#define BYTE 8
 	#define ARRAY_LENGTH(array) (sizeof((array))/sizeof((array)[0]))
-	inline const static double PI = 3.141592653589793;
-	inline double rad2deg(double d) { return d * (PI / (double)180.0); }
-	inline double deg2rad(double r) { return r * ((double)180.0 / PI); }
+	inline constexpr static long double PI = 3.141592653589793;
+	template<typename T>
+	inline T rad2deg(T rad) { return rad * (PI / (double)180.0); }
+	template<typename T>
+	inline T deg2rad(double deg) { return deg * ((double)180.0 / PI); }
 	template<typename T> inline T mapval( T value, T minIn, T maxIn, T minOut, T maxOut ) { return ((value - minIn) / (maxIn - minIn)) * (maxOut - minOut) + minOut; }
 	inline void _yield(int64_t x = 0, int64_t y = 1) { __sleep_for(seconds(x), nanoseconds(y)); yield(); }
-	inline double randd() { return (double)rand() / (double)RAND_MAX; }
+	template<typename T>
+	inline T randd() { return (T)rand() / (T)RAND_MAX; }
 
 	inline void toLowercase(string& str) {
 		std::for_each(str.begin(), str.end(), [&](char& c) {
@@ -38,9 +41,7 @@ namespace std {
 	}
 
 	inline string toLowercaseRtn(string str) {
-		std::for_each(str.begin(), str.end(), [](char& c) {
-			c = tolower(c);
-		});
+		toLowercase(str);
 		return str;
 	}
 
@@ -51,32 +52,30 @@ namespace std {
 	}
 
 	inline string toUpperrcaseRrn(string str) {
-		std::for_each(str.begin(), str.end(), [](char& c) {
-			c = toupper(c);
-		});
+		toUppercase(str);
 		return str;
 	}
 
 	template<template<typename> typename VT, typename T>
-	double inline vecAvg(VT<T>& vec) {
-		double sum = 0;
-		for(auto& v: vec)
-			sum+=v;
-		sum =/ (double)vec.size();
+	T inline vecAvg(VT<T>& vec) {
+		T sum = 0;
+		for(const auto& val: vec)
+			sum += val;
+		sum =/ (T)vec.size();
 		return sum;
 	}
 
 	template<typename T>
 	inline string toString(T a) {
-		(typeid(T) == typeid(bool)) ? ((a) ? return "true" : return "false") : void(0);
+		{ (typeid(T) == typeid(bool)) ? ((a) ? return "true" : return "false") : void(0); }
 		stringstream ss;
 		ss << a;
 		return ss.str();
     }
 	
 	template<typename T>
-	inline string toString(T a, char precision) {
-		(typeid(T) == typeid(bool)) ? ((a) ? return "true" : return "false") : void(0);
+	inline string toStringPrecision(T a, char precision) {
+		{ (typeid(T) == typeid(bool)) ? ((a) ? return "true" : return "false") : void(0); }
 		stringstream ss1;
 		stringstream ss2;
 		ss1 << setprecision(16) << fixed << a;
@@ -86,47 +85,43 @@ namespace std {
 		if((s2.size() >= (int)precision) || (s1.substr(0, precision).size() == s2.size() + 1))
 			return s2;
 		return s1.substr(0, precision);
-		}
 	}
 
 	template<template<typename> typename VT, typename T>
-	inline void writeVectorFile(std::string filepath, VT<T>& _v, bool append = false) {
-		ULLI size = _v.size();
+	inline void writeVectorFile(std::string filepath, VT<T>& vec, bool append = false) {
+		ULLI vSize = vec.size();
 		ofstream* f = new ofstream(filepath, std::ios::binary);
 		!append ? f->clear() : void(0);
-		f->write(reinterpret_cast<char*>(&size), sizeof(ULLI));
-		for(ULLI i = 0; i < _v.size(); i++) f->write(std::reinterpret_cast<char*>(&_v[i]), sizeof(T));
+		f->write(reinterpret_cast<char*>(&vSize), sizeof(ULLI));
+		for(ULLI i = 0; i < vSize; i++) f->write(std::reinterpret_cast<char*>(&vec[i]), sizeof(T));
 		f->close();
 		delete f;
-		// f->~ofstream();
-		// free(f);
 	}
 	
 	template<template<typename> typename VT, typename T>
-	inline void readVectorFile(std::string filepath, VT<T>& _v, bool append = false, ULLI beginIdx = 0, ULLI endIdx = 0) {
+	inline void readVectorFile(std::string filepath, VT<T>& vec, bool append = false, ULLI beginIdx = 0, ULLI endIdx = 0) {
 		ULLI size = 0;
 		std::ifstream* f = new ifstream(filepath, std::ios::binary);
-		(!*f)) ? return : void(0);
+		(!f) ? return void : void(0);
 		f->read(reinterpret_cast<char*>(&size), sizeof(ULLI));
-		ULI readlength = (endIdx != 0) ? endIdx : size) - beginIdx;
-		(readlength < 1) ? return : void(0);
+		ULI readlength = ((endIdx != 0) ? endIdx : size) - beginIdx;
+		(readlength < 1) ? return void : void(0);
 		if(beginIdx != 0) {
-			T tmp;
+			f->seekg(beginIdx * sizeof(T));
+			// T tmp;
 			// Find function that just skips rather than a full read execution
-			for(ULLI i = 0; i < beginIdx; i++) f->read(std::reinterpret_cast<char*>(&tmp), sizeof(T));
+			// for(ULLI i = 0; i < beginIdx; i++) f->read(std::reinterpret_cast<char*>(&tmp), sizeof(T));
 		}
+		ULLI currentSize = vec->size();
 		if(append) {
-			ULLI appendsize = _v->size();
-			_v.resize(appendsize + readlength);
+			vec.resize(currentSize + readlength);
 		} else {
-			_v->clear()
-			_v.resize(readlength);
+			vec->clear()
+			vec.resize(readlength);
 		}
-		for(ULLI i = 0; i < readlengths; i++) f->read(std::reinterpret_cast<char*>(&_v[append ? apendsize + i : i]), sizeof(T));
+		for(ULLI i = 0; i < readlengths; i++) f->read(std::reinterpret_cast<char*>(&vec[append ? currentSize + i : i]), sizeof(T));
 		f->close();
 		delete f;
-		// f->~ifstream();
-		// free(f);
 	}
 }
 	/*
