@@ -1,4 +1,7 @@
 #pragma once
+#ifdef _GLIBCXX_USE_NANOSLEEP
+#undef _GLIBCXX_USE_NANOSLEEP
+#endif
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -9,8 +12,11 @@
 #include <sstream>
 #include <cmath>
 #include <cassert>
+#include <iomanip>
 
 namespace std {
+	using namespace std::chrono;
+	using namespace std::this_thread;
 	typedef long long int LLI;
 	typedef unsigned int USI;
 	typedef unsigned long int ULI;
@@ -30,12 +36,12 @@ namespace std {
 	template<typename T>
 	inline T deg2rad(double deg) { return deg * ((double)180.0 / PI); }
 	template<typename T> inline T mapval( T value, T minIn, T maxIn, T minOut, T maxOut ) { return ((value - minIn) / (maxIn - minIn)) * (maxOut - minOut) + minOut; }
-	inline void _yield(int64_t x = 0, int64_t y = 1) { __sleep_for(seconds(x), nanoseconds(y)); yield(); }
+	inline void _yield(int64_t ns = 1) { sleep_for(nanoseconds(ns)); yield(); }
 	template<typename T>
 	inline T randd() { return (T)rand() / (T)RAND_MAX; }
 
 	inline void toLowercase(string& str) {
-		std::for_each(str.begin(), str.end(), [&](char& c) {
+		for_each(str.begin(), str.end(), [&](char& c) {
 			c = tolower(c);
 		});
 	}
@@ -46,7 +52,7 @@ namespace std {
 	}
 
 	inline void toUppercase(string& str) {
-		std::for_each(str.begin(), str.end(), [&](char& c) {
+		for_each(str.begin(), str.end(), [&](char& c) {
 			c = toupper(c);
 		});
 	}
@@ -61,13 +67,13 @@ namespace std {
 		T sum = 0;
 		for(const auto& val: vec)
 			sum += val;
-		sum =/ (T)vec.size();
+		sum /= (T)vec.size();
 		return sum;
 	}
 
 	template<typename T>
 	inline string toString(T a) {
-		{ (typeid(T) == typeid(bool)) ? ((a) ? return "true" : return "false") : void(0); }
+		{ if(typeid(T) == typeid(bool)) { return ((a) ? "true" : "false"); } }
 		stringstream ss;
 		ss << a;
 		return ss.str();
@@ -75,7 +81,7 @@ namespace std {
 	
 	template<typename T>
 	inline string toStringPrecision(T a, char precision) {
-		{ (typeid(T) == typeid(bool)) ? ((a) ? return "true" : return "false") : void(0); }
+		{ if(typeid(T) == typeid(bool)) { return ((a) ? "true" : "false"); } }
 		stringstream ss1;
 		stringstream ss2;
 		ss1 << setprecision(16) << fixed << a;
@@ -88,38 +94,38 @@ namespace std {
 	}
 
 	template<template<typename> typename VT, typename T>
-	inline void writeVectorFile(std::string filepath, VT<T>& vec, bool append = false) {
+	inline void writeVectorFile(string filepath, VT<T>& vec, bool append = false) {
 		ULLI vSize = vec.size();
-		ofstream* f = new ofstream(filepath, std::ios::binary);
+		ofstream* f = new ofstream(filepath, ios::binary);
 		!append ? f->clear() : void(0);
 		f->write(reinterpret_cast<char*>(&vSize), sizeof(ULLI));
-		for(ULLI i = 0; i < vSize; i++) f->write(std::reinterpret_cast<char*>(&vec[i]), sizeof(T));
+		for(ULLI i = 0; i < vSize; i++) f->write(reinterpret_cast<char*>(&vec[i]), sizeof(T));
 		f->close();
 		delete f;
 	}
 	
 	template<template<typename> typename VT, typename T>
-	inline void readVectorFile(std::string filepath, VT<T>& vec, bool append = false, ULLI beginIdx = 0, ULLI endIdx = 0) {
+	inline void readVectorFile(string filepath, VT<T>& vec, bool append = false, ULLI beginIdx = 0, ULLI endIdx = 0) {
 		ULLI size = 0;
-		std::ifstream* f = new ifstream(filepath, std::ios::binary);
-		(!f) ? return void : void(0);
+		ifstream* f = new ifstream(filepath, ios::binary);
+		if(!f) { return; }
 		f->read(reinterpret_cast<char*>(&size), sizeof(ULLI));
 		ULI readlength = ((endIdx != 0) ? endIdx : size) - beginIdx;
-		(readlength < 1) ? return void : void(0);
+		if(readlength < 1) { return; }
 		if(beginIdx != 0) {
-			f->seekg(beginIdx * sizeof(T));
+			f->seekg(sizeof(ULLI) + (beginIdx * sizeof(T)));
 			// T tmp;
 			// Find function that just skips rather than a full read execution
-			// for(ULLI i = 0; i < beginIdx; i++) f->read(std::reinterpret_cast<char*>(&tmp), sizeof(T));
+			// for(ULLI i = 0; i < beginIdx; i++) f->read(reinterpret_cast<char*>(&tmp), sizeof(T));
 		}
-		ULLI currentSize = vec->size();
+		ULLI currentSize = vec.size();
 		if(append) {
 			vec.resize(currentSize + readlength);
 		} else {
-			vec->clear()
+			vec.clear();
 			vec.resize(readlength);
 		}
-		for(ULLI i = 0; i < readlengths; i++) f->read(std::reinterpret_cast<char*>(&vec[append ? currentSize + i : i]), sizeof(T));
+		for(ULLI i = 0; i < readlength; i++) f->read(reinterpret_cast<char*>(&vec[append ? currentSize + i : i]), sizeof(T));
 		f->close();
 		delete f;
 	}
