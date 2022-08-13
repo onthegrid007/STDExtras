@@ -9,7 +9,7 @@
 
 // #define _GLIBCXX_USE_C99_STDINT_TR1
 #include <chrono>
-#include "../vendor/Timestamp/timestamp.h"
+#include "../vendor/Timestamp/timestamp.hpp"
 
 namespace std {
   namespace chrono {
