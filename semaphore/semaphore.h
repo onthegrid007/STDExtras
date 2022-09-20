@@ -1,10 +1,3 @@
-/*
-*   BSD 3-Clause License, see file labled 'LICENSE' for the full License.
-*   Copyright (c) 2022, Peter Ferranti
-*   All rights reserved.
-*   Other Contributers:
-*/
-
 #ifndef SEMAPHORE_H_
 #define SEMAPHORE_H_
 #include <mutex>
@@ -34,4 +27,5 @@ namespace std {
         void Shutdown();
         void ShutdownErrorHandle();
     };
+}
 #endif
