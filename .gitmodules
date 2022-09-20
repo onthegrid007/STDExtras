@@ -1,6 +1,6 @@
-[submodule "vendor/singleton"]
-	path = vendor/singleton
-	url = https://github.com/onthegrid007/singleton
+[submodule "vendor/Singleton"]
+	path = vendor/Singleton
+	url = https://github.com/onthegrid007/Singleton
 [submodule "vendor/Timestamp"]
 	path = vendor/Timestamp
 	url = https://github.com/onthegrid007/Timestamp
