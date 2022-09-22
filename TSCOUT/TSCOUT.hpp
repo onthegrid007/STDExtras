@@ -8,11 +8,11 @@
 #ifndef TSCOUT_HPP_
 #define TSCOUT_HPP_
 
-#include "vendor/singleton/singleton.hpp"
+#include "../vendor/Singleton/singleton.hpp"
 #include <iostream>
 
 namsepace std {
-	class TSCout: public Singleton<TSCout> {
+	class TSCOUT : public Singleton<TSCOUT> {
 		public:
 		template<typename T>
 		ostream& operator<<(T& op) {
@@ -25,14 +25,16 @@ namsepace std {
 		ostream& operator<<(T&& op) {
 			return (*this) << op;
 		}
+		
 		private:
-		TSCout() {}
+		_SINGLETON_CHILD_DECLORATIONS(TSCOUT)
+		TSCOUT() {}
 		mutex m_mutex;
-		~TSCout() {}
+		~TSCOUT() {}
 	};
 
-	#define tscout TSCout::GetInstance()
+	#define tscout std::TSCOUT::GetInstance()
 	#define tsendl "\n"
-	_SINGLETON_CHILD_DEFINITIONS(TSCout)
+	_SINGLETON_CHILD_DEFINITIONS(TSCOUT)
 }
 #endif

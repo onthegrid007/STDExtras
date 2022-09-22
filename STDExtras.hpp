@@ -16,34 +16,57 @@
 namespace std {
 	using namespace chrono;
 	using namespace this_thread;
-	typedef long long int LLI;
-	typedef unsigned int USI;
 	typedef unsigned long int ULI;
+	typedef signed long int SLI;
 	typedef unsigned long long int ULLI;
 	typedef signed long long int SLLI;
 	typedef long double LD;
+	typedef int64_t I64;
+	typedef int32_t I32;
 	typedef lock_guard<mutex> ThreadLock;
 	typedef lock_guard<shared_mutex> ThreadLockS;
 	typedef unique_lock<mutex> CVThreadLock;
 	typedef unique_lock<shared_mutex> CVThreadLockS;
 	typedef thread::id ThreadID;
 	/* a=target variable, b=bit number to act upon 0..n */
-	#define BIT(x) (1 << (x))
+	#define BIT(x) (std::I64(1) << (x))
 	#define BIT_SET(a,b) ((a) |= BIT(b))
 	#define BIT_CLEAR(a,b) ((a) &= ~BIT(b))
 	#define BIT_FLIP(a,b) ((a) ^= BIT(b))
 	#define BIT_CHECK(a,b) (!!((a) & BIT(b)))
 	#define BYTE 8
 	#define ARRAY_LENGTH(array) (sizeof((array))/sizeof((array)[0]))
-	inline constexpr static long double PI = 3.141592653589793;
+	inline constexpr static LD PI = 3.141592653589793;
 	template<typename T>
-	inline T rad2deg(T rad) { return rad * (PI / (double)180.0); }
+	inline T rad2deg(double rad) { return rad * (PI / (double)180.0); }
 	template<typename T>
 	inline T deg2rad(double deg) { return deg * ((double)180.0 / PI); }
 	template<typename T> inline T mapval( T value, T minIn, T maxIn, T minOut, T maxOut ) { return ((value - minIn) / (maxIn - minIn)) * (maxOut - minOut) + minOut; }
-	inline void _yield(int64_t ns = 1) { sleep_for(nanoseconds(ns)); yield(); }
+	inline void _yield(I64 ns = 1) { sleep_for(nanoseconds(ns)); yield(); }
 	template<typename T>
 	inline T randd() { return (T)rand() / (T)RAND_MAX; }
+	
+	template<size_t N>
+    struct rValStr {
+        char data[N];
+    };
+	
+    template <size_t N, size_t K>
+    constexpr auto RemoveStringContents(const char(&expr)[N], const char(&remove)[K]) {
+        rValStr<N> result = {};
+        size_t srcIdx = 0;
+        size_t dstIdx = 0;
+        while(srcIdx < N) {
+            size_t matchIdx = 0;
+            while(matchIdx < K - 1 && srcIdx + matchIdx < N - 1 && expr[srcIdx + matchIdx] == remove[matchIdx])
+                matchIdx++;
+            if(matchIdx == (K - 1))
+                srcIdx += matchIdx;
+            result.data[dstIdx++] = expr[srcIdx] == '"' ? '\'' : expr[srcIdx];
+            srcIdx++;
+        }
+        return result;
+    }
 
 	inline void toLowercase(string& str) {
 		for_each(str.begin(), str.end(), [&](char& c) {
@@ -70,7 +93,7 @@ namespace std {
 	template<template<typename> typename VT, typename T>
 	T inline vecAvg(VT<T>& vec) {
 		T sum = 0;
-		for(const auto& val: vec)
+		for(const auto& val : vec)
 			sum += val;
 		sum /= (T)vec.size();
 		return sum;
