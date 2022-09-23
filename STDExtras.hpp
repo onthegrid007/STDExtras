@@ -38,10 +38,11 @@ namespace std {
 	#define ARRAY_LENGTH(array) (sizeof((array))/sizeof((array)[0]))
 	inline constexpr static LD PI = 3.141592653589793;
 	template<typename T>
-	inline T rad2deg(double rad) { return rad * (PI / (double)180.0); }
+	inline T rad2deg(T rad) { return rad * (PI / (T)180.0); }
 	template<typename T>
-	inline T deg2rad(double deg) { return deg * ((double)180.0 / PI); }
-	template<typename T> inline T mapval( T value, T minIn, T maxIn, T minOut, T maxOut ) { return ((value - minIn) / (maxIn - minIn)) * (maxOut - minOut) + minOut; }
+	inline T deg2rad(T deg) { return deg * ((T)180.0 / PI); }
+	template<typename T>
+	inline T mapval( T value, T minIn, T maxIn, T minOut, T maxOut ) { return ((value - minIn) / (maxIn - minIn)) * (maxOut - minOut) + minOut; }
 	inline void _yield(I64 ns = 1) { sleep_for(nanoseconds(ns)); yield(); }
 	template<typename T>
 	inline T randd() { return (T)rand() / (T)RAND_MAX; }
