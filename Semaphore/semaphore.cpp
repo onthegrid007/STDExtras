@@ -6,70 +6,70 @@
 */
 
 #include "semaphore.h"
-#include "../std_extras.hpp"
 
-namespace std {
+Semaphore::Semaphore(int64_t i) :
+	m_CInit(i),
+	m_C(i) { }
 
-	Semaphore::Semaphore(int64_t i) :
-		m_M(new mutex),
-		m_CV(new condition_variable),
-		m_CInit(i),
-		m_C(i),
-		m_isShutdown(false) { }
+void Semaphore::inc(int64_t i) {
+	*this += i;
+}
 
-	void Semaphore::signal() {
-		if(m_isShutdown) return ShutdownErrorHandle();
-		ThreadLock lock(*m_M);
-		if(m_C < m_CInit) m_C++;
-		m_CV->notify_all();
-	}
+void Semaphore::dec(int64_t i) {
+	*this -= i;
+}
 
-	void Semaphore::wait() {
-		if(m_isShutdown) return ShutdownErrorHandle();
-		CVThreadLock lock(*m_M);
-		m_CV->wait(lock, [&] { return (m_C == m_CInit); });
-		m_CV->notify_all();
-	}
+void Semaphore::notify() {
+	m_CV.notify_all();
+}
 
-	void Semaphore::waitForC(int64_t i) {
-		if(m_isShutdown) return ShutdownErrorHandle();
-		CVThreadLock lock(*m_M);
-		m_CV->wait(lock, [&] { return (m_C == i); });
-		m_CV->notify_all();
-	}
+void Semaphore::waitFor(std::function<bool(const int64_t cVal, const int64_t CInitVal)>&& rtnBool) {
+	std::unique_lock<std::mutex> lock(m_M);
+	notify();
+	while(!rtnBool(m_C, m_CInit)) m_CV.wait(lock, [cVal = m_C, cInitVal = m_CInit, &rtnBool]{ return rtnBool(cVal, cInitVal); });
+}
 
-	void Semaphore::set(int64_t i) {
-		wait();
-		m_C = i;
-		m_CInit = i;
-	}
+void Semaphore::waitForI(int64_t i) {
+	waitFor([&, i](const int64_t cVal, const int64_t cInitVal){ return (cVal == i); });
+}
 
-	void Semaphore::decrement() {
-		if(m_isShutdown) return ShutdownErrorHandle();
-		CVThreadLock lock(*m_M);
-		m_CV->wait(lock, [&] { return ((m_C > 0)); });
-		m_C--;
-		m_CV->notify_all();
-	}
+void Semaphore::wait() {
+	waitFor([&](const int64_t cVal, const int64_t cInitVal){ return (cVal == cInitVal); });
+}
 
-	int64_t Semaphore::getC() {
-		return m_C;
-	}
+void Semaphore::set(int64_t i) {
+	wait();
+	m_C = i;
+	m_CInit = i;
+}
 
-	void Semaphore::Shutdown() {
-		wait();
-		delete m_M;
-		delete m_CV;
-		m_CInit = 0;
-		m_C = 0;
-		m_isShutdown = true;	
-	}
+Semaphore::operator int64_t() {
+	return m_C;
+}
 
-	void std::Semaphore::ShutdownErrorHandle() {
-		// Handle Error
-	}
+int64_t Semaphore::operator+(const Semaphore& other) {
+	return m_C + other.m_C;
+}
 
-	Semaphore::~Semaphore() {
-		if(!m_isShutdown) Shutdown();
-	}
+int64_t Semaphore::operator-(const Semaphore& other) {
+	return m_C - other.m_C;
+}
+
+int64_t Semaphore::operator+=(const int64_t i) {
+	std::lock_guard<std::mutex> lock(m_M);
+	m_C += i;
+	notify();
+	return m_C;
+}
+
+int64_t Semaphore::operator-=(const int64_t i) {
+	std::lock_guard<std::mutex> lock(m_M);
+	m_C -= i;
+	notify();
+	return m_C;
+
+}
+
+Semaphore::~Semaphore() {
+	// wait();
 }

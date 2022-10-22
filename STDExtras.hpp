@@ -1,4 +1,6 @@
-#pragma once
+// #pragma once
+#ifndef STDEXTRAS_H_
+#define STDEXTRAS_H_
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -12,9 +14,10 @@
 #include <cmath>
 #include <cassert>
 #include <iomanip>
+#include <condition_variable>
 
 namespace std {
-	using namespace chrono;
+	// using namespace chrono;
 	using namespace this_thread;
 	typedef unsigned long int ULI;
 	typedef signed long int SLI;
@@ -43,9 +46,11 @@ namespace std {
 	inline T deg2rad(T deg) { return deg * ((T)180.0 / PI); }
 	template<typename T>
 	inline T mapval( T value, T minIn, T maxIn, T minOut, T maxOut ) { return ((value - minIn) / (maxIn - minIn)) * (maxOut - minOut) + minOut; }
-	inline void _yield(I64 ns = 1) { sleep_for(nanoseconds(ns)); yield(); }
+	inline void _yield(I64 ns = 1) { sleep_for(chrono::nanoseconds(ns)); yield(); }
 	template<typename T>
 	inline T randd() { return (T)rand() / (T)RAND_MAX; }
+	
+	#define ALWAYS_INLINE __attribute__((always_inline))
 	
 	template<size_t N>
     struct rValStr {
@@ -68,6 +73,27 @@ namespace std {
         }
         return result;
     }
+	
+	template <class Tp>
+	inline __attribute__((always_inline))
+	typename enable_if<is_trivially_copyable<Tp>::value && (sizeof(Tp) <= sizeof(Tp*)), void>::type
+	DoNotOptimize(Tp& value) {
+		asm volatile("" : "+r"(&value) : : "memory");
+	}
+
+	template <class Tp>
+	inline __attribute__((always_inline))
+	typename enable_if<!std::is_trivially_copyable<Tp>::value || (sizeof(Tp) > sizeof(Tp*)), void>::type
+	DoNotOptimize(Tp& value) {
+		asm volatile("" : "+m"(&value) : : "memory");
+	}
+	
+	// template<class T>
+	// inline ALWAYS_INLINE typename DoNotOptimize(T& value) {
+	// 	// asm volatile("" : "+m"((value)));
+	// 	// asm volatile("" : "+r,m"(value) : : "memory");
+	// 	asm volatile("" : "+m"(value) : : "memory");
+	// }
 
 	inline void toLowercase(string& str) {
 		for_each(str.begin(), str.end(), [&](char& c) {
@@ -159,6 +185,7 @@ namespace std {
 		delete f;
 	}
 }
+#endif
 	/*
 	inline void intervalThread(function<void()> begin, function<void()> loop, function<void()> stop, function<bool()> exitCondition, int64_t Interval, vector<int64_t>* LoopTimes, bool debug = false) {
 		thread([Name, Start, Loop, Exit, ExitCondition, Interval, LoopTimes, debug] {
