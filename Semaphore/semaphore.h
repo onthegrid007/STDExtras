@@ -8,7 +8,7 @@
 
 class Semaphore : public NonCopyable, public NonMovable {
     public:
-    Semaphore(int64_t i);
+    Semaphore(int64_t i = 0);
     ~Semaphore();
     void inc(int64_t i = 1);
     void dec(int64_t i = 1);

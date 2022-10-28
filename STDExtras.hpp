@@ -74,15 +74,15 @@ namespace std {
         return result;
     }
 	
-	template <class Tp>
-	inline __attribute__((always_inline))
+	template<class Tp>
+	inline ALWAYS_INLINE
 	typename enable_if<is_trivially_copyable<Tp>::value && (sizeof(Tp) <= sizeof(Tp*)), void>::type
 	DoNotOptimize(Tp& value) {
 		asm volatile("" : "+r"(&value) : : "memory");
 	}
 
-	template <class Tp>
-	inline __attribute__((always_inline))
+	template<class Tp>
+	inline ALWAYS_INLINE
 	typename enable_if<!std::is_trivially_copyable<Tp>::value || (sizeof(Tp) > sizeof(Tp*)), void>::type
 	DoNotOptimize(Tp& value) {
 		asm volatile("" : "+m"(&value) : : "memory");
