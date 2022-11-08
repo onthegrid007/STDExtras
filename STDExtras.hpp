@@ -15,6 +15,7 @@
 #include <cassert>
 #include <iomanip>
 #include <condition_variable>
+#include <cxxabi.h>
 
 namespace std {
 	// using namespace chrono;
@@ -32,14 +33,14 @@ namespace std {
 	typedef unique_lock<shared_mutex> CVThreadLockS;
 	typedef thread::id ThreadID;
 	/* a=target variable, b=bit number to act upon 0..n */
-	#define BIT(x) (std::I64(1) << (x))
+	#define BIT(x) (decltype(x)(1) << (x))
 	#define BIT_SET(a,b) ((a) |= BIT(b))
 	#define BIT_CLEAR(a,b) ((a) &= ~BIT(b))
 	#define BIT_FLIP(a,b) ((a) ^= BIT(b))
 	#define BIT_CHECK(a,b) (!!((a) & BIT(b)))
 	#define BYTE 8
 	#define ARRAY_LENGTH(array) (sizeof((array))/sizeof((array)[0]))
-	inline constexpr static LD PI = 3.141592653589793;
+	constexpr static LD PI = 3.141592653589793;
 	template<typename T>
 	inline T rad2deg(T rad) { return rad * (PI / (T)180.0); }
 	template<typename T>
@@ -94,6 +95,13 @@ namespace std {
 	// 	// asm volatile("" : "+r,m"(value) : : "memory");
 	// 	asm volatile("" : "+m"(value) : : "memory");
 	// }
+	#ifdef ENABLE_BAD_LOG
+		#define BADLOG(x) std::cout << x << std::endl;
+		#define BADLOGV(x) BADLOG(#x << ":") BADLOG(x << std::endl)
+	#else
+		#define BADLOG(x)
+		#define BADLOGV(x)
+	#endif
 
 	inline void toLowercase(string& str) {
 		for_each(str.begin(), str.end(), [&](char& c) {
@@ -116,13 +124,33 @@ namespace std {
 		toUppercase(str);
 		return str;
 	}
+	
+	inline int getEditDistance(const string& x, const string& y) {
+		const int m = x.length();
+		const int n = y.length();
+		int T[m + 1][n + 1];
+		for (int i = 1; i <= m; i++)
+			T[i][0] = i;
+		for (int j = 1; j <= n; j++)
+			T[0][j] = j;
+		for (int i = 1; i <= m; i++)
+			for (int j = 1; j <= n; j++)
+				T[i][j] = min(min(T[i-1][j] + 1, T[i][j-1] + 1), T[i-1][j-1] + (x[i - 1] == y[j - 1] ? 0 : 1));
+	
+		return T[m][n];
+	}
+ 
+	inline LD findStringSimilarity(const string& first, const string& second) {
+		LD maxL = max(first.length(), second.length());
+		return ((maxL > 0) ? ((maxL - getEditDistance(first, second)) / maxL) : 1);
+	}
 
 	template<template<typename> typename VT, typename T>
-	T inline vecAvg(VT<T>& vec) {
-		T sum = 0;
-		for(const auto& val : vec)
+	inline LD vecAvg(VT<T>& vec) {
+		LD sum = 0;
+		for(const T& val : vec)
 			sum += val;
-		sum /= (T)vec.size();
+		sum /= (LD)vec.size();
 		return sum;
 	}
 
