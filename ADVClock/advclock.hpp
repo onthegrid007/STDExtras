@@ -46,12 +46,12 @@ namespace std {
       _ADVClock() :
         m_begin(ClockType::now()) { }
         
-      template<typename rtnType = double, typename castType>
+      template<typename rtnType = long double, typename castType>
       static rtnType RuntimeCast(castType cast, Precision precision = Precision::Nanoseconds) {
           return RuntimeCastFromNano<rtnType>(duration_cast<nanoseconds>(cast), precision);
       }
 
-      template<typename rtnType = double>
+      template<typename rtnType = long double>
       static rtnType RuntimeCastFromNano(nanoseconds fromNanos, Precision precision = Precision::Nanoseconds) {
         #define divb1k(x) (x / rtnType(1000.0))
         #define nanos int64_t(fromNanos.count())

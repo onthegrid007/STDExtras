@@ -8,22 +8,25 @@
 
 class Semaphore : public NonCopyable, public NonMovable {
     public:
+    typedef std::function<bool(const int64_t cVal, const int64_t CInitVal)> WaitFunc;
     Semaphore(int64_t i = 0);
     ~Semaphore();
-    void inc(int64_t i = 1);
-    void dec(int64_t i = 1);
+    Semaphore& inc(int64_t i = 1);
+    Semaphore& dec(int64_t i = 1);
     void notify();
-    void waitFor(std::function<bool(const int64_t cVal, const int64_t CInitVal)>&& retBool);
+    void notify_single();
+    void waitFor(WaitFunc&& retBool);
     void waitForI(int64_t i);
     void wait();
     void reset();
-    void set(int64_t i);
-    void decrement();
+    Semaphore& set(int64_t i);
     operator int64_t();
     int64_t operator+(const Semaphore& other);
     int64_t operator-(const Semaphore& other);
-    int64_t operator+=(const int64_t i);
-    int64_t operator-=(const int64_t i);
+    Semaphore& operator+=(const int64_t i);
+    Semaphore& operator-=(const int64_t i);
+    Semaphore& operator++();
+    Semaphore& operator--();
 
     private:
     std::mutex m_M;
