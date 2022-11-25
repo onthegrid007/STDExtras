@@ -15,15 +15,7 @@
 #include <cassert>
 #include <iomanip>
 #include <condition_variable>
-#include <cxxabi.h>
-
-#if _GLIBCXX_USE_CXX11_ABI
-	#define STDEALWAYS_INLINE inline cxx11 __attribute__((abi_tag("cxx11")))
-#else
-	#define STDEINLINE inline 
-#endif
-
-#define ALWAYS_INLINE STDEINLINE __attribute__((always_inline))
+#include "vendor/ThreadPool/vendor/Semaphore/vendor/Singleton/inline_abi_macros.h"
 
 namespace std {
 	// using namespace chrono;
@@ -61,17 +53,16 @@ namespace std {
 	template<typename T>
 	ALWAYS_INLINE LD deg2rad(T deg) { return deg * ((LD)180.0 / PI); }
 	template<typename T0, typename T1, typename T2, typename T3, typename T4>
-	ALWAYS_INLINE LD mapval( T0 value, T1 minIn, T2 maxIn, T3 minOut, T4 maxOut ) { return (((LD)value - (LD)minIn) / ((LD)maxIn - (LD)minIn)) * ((LD)maxOut - (LD)minOut) + (LD)minOut; }
+	ALWAYS_INLINE LD mapval(T0 value, T1 minIn, T2 maxIn, T3 minOut, T4 maxOut ) { return (((LD)value - (LD)minIn) / ((LD)maxIn - (LD)minIn)) * ((LD)maxOut - (LD)minOut) + (LD)minOut; }
 	ALWAYS_INLINE void _yield(I64 ns = 1) { sleep_for(chrono::nanoseconds(ns)); yield(); }
 	ALWAYS_INLINE LD randd() { return (LD)rand() / (LD)RAND_MAX; }
-	
 	
 	template<size_t N>
     struct rValStr {
         char data[N];
     };
 	
-    template <size_t N, size_t K>
+    template<size_t N, size_t K>
     constexpr auto RemoveStringContents(const char(&expr)[N], const char(&remove)[K]) {
         rValStr<N> result = {};
         size_t srcIdx = 0;
@@ -101,13 +92,6 @@ namespace std {
 	DoNotOptimize(Tp& value) {
 		asm volatile("" : "+m"(&value) : : "memory");
 	}
-	
-	// template<class T>
-	// ALWAYS_INLINE ALWAYS_ALWAYS_INLINE typename DoNotOptimize(T& value) {
-	// 	// asm volatile("" : "+m"((value)));
-	// 	// asm volatile("" : "+r,m"(value) : : "memory");
-	// 	asm volatile("" : "+m"(value) : : "memory");
-	// }
 	
 	#ifdef ENABLE_BAD_LOG
 		#define BADLOG(x) std::cout << x << std::endl;
@@ -139,33 +123,30 @@ namespace std {
 		return str;
 	}
 	
-	ALWAYS_INLINE int getEditDistance(const string& x, const string& y) {
-		const int m = x.length();
-		const int n = y.length();
-		int T[m + 1][n + 1];
-		for (int i = 1; i <= m; i++)
+	ALWAYS_INLINE LLI getEditDistance(const string& x, const string& y) {
+		const LLI m = x.length();
+		const LLI n = y.length();
+		LLI T[m + 1][n + 1];
+		for(LLI i = 1; i <= m; i++)
 			T[i][0] = i;
-		for (int j = 1; j <= n; j++)
+		for(LLI j = 1; j <= n; j++)
 			T[0][j] = j;
-		for (int i = 1; i <= m; i++)
-			for (int j = 1; j <= n; j++)
+		for(LLI i = 1; i <= m; i++)
+			for (LLI j = 1; j <= n; j++)
 				T[i][j] = min(min(T[i-1][j] + 1, T[i][j-1] + 1), T[i-1][j-1] + (x[i - 1] == y[j - 1] ? 0 : 1));
-	
 		return T[m][n];
 	}
  
 	ALWAYS_INLINE LD findStringSimilarity(const string& first, const string& second) {
-		LD maxL = max(first.length(), second.length());
+		const LD maxL = max(first.length(), second.length());
 		return ((maxL > 0) ? ((maxL - getEditDistance(first, second)) / maxL) : 1);
 	}
 
 	template<template<typename> typename VT, typename T>
 	ALWAYS_INLINE LD vecAvg(VT<T>& vec) {
 		LD sum = 0;
-		for(const T& val : vec)
-			sum += val;
-		sum /= (LD)vec.size();
-		return sum;
+		for(const T& val : vec) sum += val;
+		return sum / (LD)vec.size();
 	}
 
 	template<typename T>
@@ -192,7 +173,7 @@ namespace std {
 
 	template<template<typename> typename VT, typename T>
 	ALWAYS_INLINE void writeVectorFile(string filepath, VT<T>& vec, bool append = false) {
-		ULLI vSize = vec.size();
+		const ULLI vSize = vec.size();
 		ofstream* f = new ofstream(filepath, ios::binary);
 		!append ? f->clear() : void(0);
 		f->write(reinterpret_cast<char*>(&vSize), sizeof(ULLI));
@@ -207,22 +188,12 @@ namespace std {
 		ifstream* f = new ifstream(filepath, ios::binary);
 		if(!f) { return; }
 		f->read(reinterpret_cast<char*>(&size), sizeof(ULLI));
-		ULI readlength = ((endIdx != 0) ? endIdx : size) - beginIdx;
+		ULI readlength = ((endIdx != 0) ? (endIdx < size ? endIdx : size) : size) - beginIdx;
 		if(readlength < 1) { return; }
-		if(beginIdx != 0) {
-			f->seekg(sizeof(ULLI) + (beginIdx * sizeof(T)));
-			// T tmp;
-			// Find function that just skips rather than a full read execution
-			// for(ULLI i = 0; i < beginIdx; i++) f->read(reinterpret_cast<char*>(&tmp), sizeof(T));
-		}
-		ULLI currentSize = vec.size();
-		if(append) {
-			vec.resize(currentSize + readlength);
-		} else {
-			vec.clear();
-			vec.resize(readlength);
-		}
-		for(ULLI i = 0; i < readlength; i++) f->read(reinterpret_cast<char*>(&vec[append ? currentSize + i : i]), sizeof(T));
+		if(beginIdx != 0) f->seekg(sizeof(ULLI) + (beginIdx * sizeof(T)));
+		ULLI currentSize = append ? vec.size() : 0;
+		append ? vec.resize(currentSize + readlength) : (vec.clear() && vec.resize(readlength));
+		for(ULLI i = 0; i < readlength; i++) f->read(reinterpret_cast<char*>(&vec[currentSize + i]), sizeof(T));
 		f->close();
 		delete f;
 	}

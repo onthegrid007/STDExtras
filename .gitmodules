@@ -4,3 +4,6 @@
 [submodule "vendor/Timestamp"]
 	path = vendor/Timestamp
 	url = https://github.com/onthegrid007/Timestamp
+[submodule "vendor/ThreadPool"]
+	path = vendor/ThreadPool
+	url = https://github.com/onthegrid007/ThreadPool
