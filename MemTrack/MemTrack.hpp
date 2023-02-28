@@ -1,6 +1,6 @@
 #ifndef MEMTRACK_HPP_
 #define MEMTRACK_HPP_
-#include "../Semaphore/semaphore.h"
+#include "../vendor/ThreadPool/vendor/Semaphore/semaphore.h"
 
 namespace MemTrack {
     namespace Global {

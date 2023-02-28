@@ -7,3 +7,6 @@
 [submodule "vendor/ThreadPool"]
 	path = vendor/ThreadPool
 	url = https://github.com/onthegrid007/ThreadPool
+[submodule "vendor/FPNBits"]
+	path = vendor/FPNBits
+	url = https://github.com/onthegrid007/FPNBits

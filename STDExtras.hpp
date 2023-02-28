@@ -123,16 +123,16 @@ namespace std {
 		return str;
 	}
 	
-	ALWAYS_INLINE LLI getEditDistance(const string& x, const string& y) {
-		const LLI m = x.length();
-		const LLI n = y.length();
-		LLI T[m + 1][n + 1];
-		for(LLI i = 1; i <= m; i++)
+	ALWAYS_INLINE ULLI getEditDistance(const string& x, const string& y) {
+		const ULLI m = x.length();
+		const ULLI n = y.length();
+		ULLI T[m + 1][n + 1];
+		for(ULLI i = 1; i <= m; i++)
 			T[i][0] = i;
-		for(LLI j = 1; j <= n; j++)
+		for(ULLI j = 1; j <= n; j++)
 			T[0][j] = j;
-		for(LLI i = 1; i <= m; i++)
-			for (LLI j = 1; j <= n; j++)
+		for(ULLI i = 1; i <= m; i++)
+			for (ULLI j = 1; j <= n; j++)
 				T[i][j] = min(min(T[i-1][j] + 1, T[i][j-1] + 1), T[i-1][j-1] + (x[i - 1] == y[j - 1] ? 0 : 1));
 		return T[m][n];
 	}
@@ -163,7 +163,7 @@ namespace std {
 		stringstream ss1;
 		stringstream ss2;
 		ss1 << setprecision(16) << fixed << a;
-		ss2 << LLI(a);
+		ss2 << ULLI(a);
 		string s1 = ss1.str();
 		string s2 = ss2.str();
 		if((s2.size() >= (int)precision) || (s1.substr(0, precision).size() == s2.size() + 1))
@@ -176,7 +176,7 @@ namespace std {
 		const ULLI vSize = vec.size();
 		ofstream* f = new ofstream(filepath, ios::binary);
 		!append ? f->clear() : void(0);
-		f->write(reinterpret_cast<char*>(&vSize), sizeof(ULLI));
+		f->write(reinterpret_cast<const char*>(&vSize), sizeof(ULLI));
 		for(ULLI i = 0; i < vSize; i++) f->write(reinterpret_cast<char*>(&vec[i]), sizeof(T));
 		f->close();
 		delete f;
