@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 #include <thread>
-#include <mutex>
+#include <deque>
 #include <shared_mutex>
 #include <functional>
 #include <typeinfo>
@@ -16,6 +16,9 @@
 #include <condition_variable>
 #include <array>
 #include <memory>
+#include <bit>
+#include <type_traits>
+#include <algorithm>
 #define UPTR(__T, __Name, ...) std::unique_ptr<__T> __Name{std::make_unique<__T>(__VA_ARGS__)}
 
 #include "vendor/ThreadPool/vendor/Semaphore/vendor/Singleton/inline_abi_macros.h"
@@ -37,10 +40,10 @@ namespace std {
 	} null_mutex;
 	typedef lock_guard<null_mutex> NullThreadLock;
 	typedef lock_guard<mutex> ThreadLock;
-	typedef lock_guard<shared_mutex> ThreadLockS;
+	typedef lock_guard<shared_timed_mutex> ThreadLockS;
 	typedef unique_lock<null_mutex> NullCVThreadLock;
 	typedef unique_lock<mutex> CVThreadLock;
-	typedef unique_lock<shared_mutex> CVThreadLockS;
+	typedef unique_lock<shared_timed_mutex> CVThreadLockS;
 	typedef thread::id ThreadID;
 	/* a=target variable, b=bit number to act upon 0..n */
 	#define BIT(x) (decltype(x)(1) << (x))
@@ -52,13 +55,57 @@ namespace std {
 	#define ARRAY_LENGTH(array) (sizeof((array))/sizeof((array)[0]))
 	static constexpr LD PI = 3.141592653589793;
 	template<typename T>
-	ALWAYS_INLINE const LD rad2deg(T rad) { return rad * (PI / LD(180)); }
+	inline const LD rad2deg(T rad) { return rad * (PI / LD(180)); }
 	template<typename T>
-	ALWAYS_INLINE const LD deg2rad(T deg) { return deg * (LD(180) / PI); }
+	inline const LD deg2rad(T deg) { return deg * (LD(180) / PI); }
 	template<typename T0, typename T1, typename T2, typename T3, typename T4>
-	ALWAYS_INLINE const LD mapval(T0 value, T1 minIn, T2 maxIn, T3 minOut, T4 maxOut ) { return (((LD)value - (LD)minIn) / ((LD)maxIn - (LD)minIn)) * ((LD)maxOut - (LD)minOut) + (LD)minOut; }
-	ALWAYS_INLINE void _yield(I64 ns = 1) { sleep_for(chrono::nanoseconds(ns)); yield(); }
-	ALWAYS_INLINE LD randd() { return (LD(rand()) / LD(RAND_MAX)); }
+	inline const LD mapval(T0 value, T1 minIn, T2 maxIn, T3 minOut, T4 maxOut ) { return (((LD)value - (LD)minIn) / ((LD)maxIn - (LD)minIn)) * ((LD)maxOut - (LD)minOut) + (LD)minOut; }
+	inline void _yield(I64 ns = 1) { sleep_for(chrono::nanoseconds(ns)); yield(); }
+	inline LD randd() { return (LD(rand()) / LD(RAND_MAX)); }
+	static inline constexpr bool isLittleEndianS{std::endian::native == std::endian::little};
+	// []() constexpr->bool{
+		// struct ET {
+		// 	union {
+		// 		const I32 a;
+		// 		const char b[sizeof(I32)];
+		// 	};
+		// 	constexpr ET(const I32& _a) : a(_a) {}
+		// };
+		// // typedef  ET;
+		// static constexpr I32 V{0x00000001};
+		// static constexpr ET E{V};
+		// return !(E.b[0]);
+	// }()};
+	
+	// template<typename T>
+	// inline constexpr T PowerUpVal(const T v1, const T v2) {
+	// 	return v1 * v2;
+	// }
+
+	// template<typename T, short N, T LT, T... Vals>
+	// ALWAYS_INLINE constexpr typename std::enable_if<(N == sizeof...(Vals)), std::array<T, N>>::type MakePowerUpArr() {
+	// 	return std::array<T, N>{{Vals...}};
+	// }
+
+	// template<typename T, short N, T... Vals>
+	// ALWAYS_INLINE constexpr typename std::enable_if<(sizeof...(Vals) > 0), std::array<T, N>>::type MakePowerUpArr() {
+	// 	constexpr std::initializer_list<T> L{Vals...};
+	// 	return MakePowerUpArr<T, N, PowerUpVal(*(L.begin() + (L.size() - 1)), *(L.begin() + (L.size() - 1)), Vals..., PowerUpVal(*(L.begin() + (L.size() - 1)), *(L.begin() + (L.size() - 1)))>();
+	// }
+	
+	// template<typename T, short N, T LT, T... Vals>
+	// ALWAYS_INLINE constexpr typename std::enable_if<(N != sizeof...(Vals)), std::array<T, N>>::type MakePowerUpArr() {
+	// 	constexpr std::initializer_list<T> L{Vals...};
+	// 	return MakePowerUpArr<T, N, PowerUpVal(*(L.begin() + (L.size() - 1)), *(L.begin() + (L.size() - 1)), Vals..., PowerUpVal(*(L.begin() + (L.size() - 1)), *(L.begin() + (L.size() - 1)))>();
+	// }
+	
+	template<typename T, short N>
+	constexpr std::array<T, N> GenCExprArr(const std::function<const T(const std::array<T, N>&, const short)>&& _callback) {
+		std::array<T, N> arr{};
+		for(short i = 0; i < N; i++)
+			arr[i] = _callback(arr, i);
+		return arr;
+	};
 	
 	// #define _TSIZE 128
 	// static constexpr std::array<ULLI, _TSIZE> PTPTable = []() constexpr->std::array<ULLI, _TSIZE>{
@@ -68,11 +115,11 @@ namespace std {
 	// 	return rtn;
 	// };
 	
-	template<typename T>
-	constexpr char log10_cxpr(const T& num) {
-		for(char i = 0; i < short(_TSIZE); i++) { if(PTPTable[i] > num) return i; }
-		return 0;
-	}
+	// template<typename T>
+	// constexpr char log10_cxpr(const T& num) {
+	// 	for(char i = 0; i < short(_TSIZE); i++) { if(PTPTable[i] > num) return i; }
+	// 	return 0;
+	// }
 	
 	template<size_t N>
     struct rValStr {
@@ -80,7 +127,7 @@ namespace std {
     };
 	
     template<size_t N, size_t K>
-    ALWAYS_INLINE constexpr auto RemoveStringContents(const char(&expr)[N], const char(&remove)[K]) {
+    inline constexpr auto RemoveStringContents(const char(&expr)[N], const char(&remove)[K]) {
         rValStr<N> result = {};
         size_t srcIdx = 0;
         size_t dstIdx = 0;
@@ -97,16 +144,12 @@ namespace std {
     }
 	
 	template<class Tp>
-	ALWAYS_INLINE
-	typename enable_if<is_trivially_copyable<Tp>::value && (sizeof(Tp) <= sizeof(Tp*)), void>::type
-	DoNotOptimize(Tp& value) {
+	inline volatile typename enable_if<is_trivially_copyable<Tp>::value && (sizeof(Tp) <= sizeof(Tp*)), void>::type DoNotOptimize(Tp& value) {
 		asm volatile("" : "+r"(&value) : : "memory");
 	}
-
+	
 	template<class Tp>
-	ALWAYS_INLINE
-	volatile typename enable_if<!std::is_trivially_copyable<Tp>::value || (sizeof(Tp) > sizeof(Tp*)), void>::type
-	DoNotOptimize(Tp& value) {
+	inline volatile typename enable_if<!std::is_trivially_copyable<Tp>::value || (sizeof(Tp) > sizeof(Tp*)), void>::type DoNotOptimize(Tp& value) {
 		asm volatile("" : "+m"(&value) : : "memory");
 	}
 	
@@ -118,65 +161,50 @@ namespace std {
 		#define BADLOGV(x)
 	#endif
 	
-	ALWAYS_INLINE void toLowercase(string& str) {
+	inline void toLowercase(string& str) {
 		for_each(str.begin(), str.end(), [](char& c) {
 			c = tolower(c);
 		});
 	}
 	
-	ALWAYS_INLINE string toLowercaseRtn(string str) {
+	inline string toLowercaseRtn(string str) {
 		toLowercase(str);
 		return str;
 	}
 	
-	ALWAYS_INLINE void toUppercase(string& str) {
+	inline void toUppercase(string& str) {
 		for_each(str.begin(), str.end(), [](char& c) {
 			c = toupper(c);
 		});
 	}
 	
-	ALWAYS_INLINE string toUpperrcaseRrn(string str) {
+	inline string toUpperrcaseRrn(string str) {
 		toUppercase(str);
 		return str;
 	}
 	
-	ALWAYS_INLINE constexpr ULLI getEditDistance(const string& x, const string& y) {
-		const ULLI m = x.length();
-		const ULLI n = y.length();
-		ULLI T[m + 1][n + 1];
-		for(ULLI i = 1; i <= m; i++)
-			T[i][0] = i;
-		for(ULLI j = 1; j <= n; j++)
-			T[0][j] = j;
-		for(ULLI i = 1; i <= m; i++)
-			for (ULLI j = 1; j <= n; j++)
-				T[i][j] = min(min(T[i-1][j] + 1, T[i][j-1] + 1), T[i-1][j-1] + (x[i - 1] == y[j - 1] ? 0 : 1));
-		return T[m][n];
-	}
-	
-	ALWAYS_INLINE constexpr LD findStringSimilarity(const string& first, const string& second) {
-		const LD maxL = max(first.length(), second.length());
-		return ((maxL > 0) ? ((maxL - getEditDistance(first, second)) / maxL) : 1);
-	}
-	
 	template<template<typename> typename VT, typename T>
-	ALWAYS_INLINE const LD vecAvg(const VT<T>& vec) {
+	inline const LD vecAvg(const VT<T>& vec) {
 		LD sum = 0;
 		for(const T& val : vec) sum += val;
 		return sum / (LD)vec.size();
 	}
 	
-	template<typename T>
-	ALWAYS_INLINE const string toString(T a) {
-		{ if(typeid(T) == typeid(bool)) { return ((a) ? "true" : "false"); } }
-		stringstream ss;
-		ss << a;
-		return ss.str();
-    }
+	// template<typename T> requires is_type<T, bool>::value
+	// inline const string toString(T a) {
+	// 	return (a ? "true" : "false");
+	// }
+	
+	// template<typename T> requires !is_type<T, bool>::value
+	// inline const string toString(T a) {
+	// 	stringstream ss;
+	// 	ss << a;
+	// 	return ss.str();
+    // }
 	
 	template<typename T>
-	ALWAYS_INLINE const string toStringPrecision(T a, const char precision) {
-		{ if(typeid(T) == typeid(bool)) { return ((a) ? "true" : "false"); } }
+	inline const string toStringPrecision(T a, const char precision) {
+		// { if(typeid(T) == typeid(bool)) { return (a ? "true" : "false"); } }
 		stringstream ss1;
 		stringstream ss2;
 		ss1 << setprecision(16) << fixed << a;
@@ -189,7 +217,7 @@ namespace std {
 	}
 	
 	template<template<typename> typename VT, typename T>
-	ALWAYS_INLINE void writeVectorFile(const string filepath, VT<T>& vec, const bool append = false) {
+	inline void writeVectorFile(const string filepath, VT<T>& vec, const bool append = false) {
 		const ULLI vSize = vec.size();
 		UPTR(ofstream, f, filepath, ios::binary);
 		if(!append) f.get()->clear();
@@ -198,12 +226,12 @@ namespace std {
 	}
 	
 	template<template<typename> typename VT, typename T>
-	ALWAYS_INLINE void readVectorFile(string filepath, VT<T>& vec, const bool append = false, const ULLI beginIdx = 0, const ULLI endIdx = 0) {
+	inline void readVectorFile(string filepath, VT<T>& vec, const bool append = false, const ULLI beginIdx = 0, const ULLI endIdx = 0) {
 		ULLI vSize = 0;
 		UPTR(ifstream, f, filepath, ios::binary);
 		if(!(f.get())) return;
 		f.get()->read(reinterpret_cast<char*>(&vSize), sizeof(ULLI));
-		const UULI readlength = ((endIdx != 0) ? (endIdx < vSize ? endIdx : vSize) : vSize) - beginIdx;
+		const ULLI readlength = ((endIdx != 0) ? (endIdx < vSize ? endIdx : vSize) : vSize) - beginIdx;
 		if(readlength < 1) return;
 		if(beginIdx != 0) f.get()->seekg(sizeof(ULLI) + (beginIdx * sizeof(T)));
 		const ULLI currentSize = append ? vec.size() : 0;
