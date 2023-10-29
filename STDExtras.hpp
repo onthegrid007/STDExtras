@@ -19,12 +19,12 @@
 #include <bit>
 #include <type_traits>
 #include <algorithm>
+#include <endian>
 #define UPTR(__T, __Name, ...) std::unique_ptr<__T> __Name{std::make_unique<__T>(__VA_ARGS__)}
 
 #include "vendor/ThreadPool/vendor/Semaphore/vendor/Singleton/inline_abi_macros.h"
 
 namespace std {
-	// using namespace chrono;
 	using namespace this_thread;
 	typedef unsigned long int ULI;
 	typedef signed long int SLI;
