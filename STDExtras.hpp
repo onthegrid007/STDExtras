@@ -19,7 +19,7 @@
 #include <bit>
 #include <type_traits>
 #include <algorithm>
-#include <endian>
+#include <endian.h>
 #define UPTR(__T, __Name, ...) std::unique_ptr<__T> __Name{std::make_unique<__T>(__VA_ARGS__)}
 
 #include "vendor/ThreadPool/vendor/Semaphore/vendor/Singleton/inline_abi_macros.h"
