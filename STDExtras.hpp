@@ -185,7 +185,7 @@ namespace std {
 	
 	template<template<typename> typename VT, typename T>
 	inline const LD vecAvg(const VT<T>& vec) {
-		LD sum = 0;
+		LD sum{0};
 		for(const T& val : vec) sum += val;
 		return sum / (LD)vec.size();
 	}
